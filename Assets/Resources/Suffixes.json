@@ -1,0 +1,9 @@
+{
+  "suffix": " of Fire",
+  "modifiers": [
+    {
+      "ModType": "Damage",
+      "DmgType": "Fire"
+    }
+  ]
+}

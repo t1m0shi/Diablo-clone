@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Magnus, Hammer of the Ancients",
+    "equipSlot": "MainHand",
+    "hands": 2,
+    "effect": {
+      "affectedSkill": "Smash"
+
+    }
+  }
+]

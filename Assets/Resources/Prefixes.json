@@ -1,0 +1,41 @@
+[
+  {
+    "prefix": "Tough ",
+    "modifiers": [
+      {
+        "ModType": "Primary",
+        "PrimaryStatType": "Health"
+      },
+      {
+        "ModType": "Resistance",
+        "DmgType": "Physical"
+      }
+    ]
+  },
+  {
+    "prefix": "Hellforged ",
+    "modifiers": [
+      {
+        "ModType": "Resistance",
+        "DmgType": "Physical"
+      },
+      {
+        "ModType": "Resistance",
+        "DmgType": "Fire"
+      }
+    ]
+  },
+  {
+    "prefix": "Voidforged ",
+    "modifiers": [
+      {
+        "ModType": "Resistance",
+        "DmgType": "Physical"
+      },
+      {
+        "ModType": "Resistance",
+        "DmgType": "Void"
+      }
+    ]
+  }
+]
