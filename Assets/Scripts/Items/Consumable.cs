@@ -35,7 +35,7 @@ public class Consumable : Item
         UsageEffects = usageEffects;
     }
 
-    public override bool Use(int index)
+    public override bool Use(int index, int equipIndex=-1)
     {
         base.Use(index);
         Debug.Log("used a consumable");

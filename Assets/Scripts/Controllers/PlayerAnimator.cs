@@ -13,7 +13,7 @@ public class PlayerAnimator : MonoBehaviour {
     public Animator animator;
     public float speedPercent;
     public float accel;
-    float maxSpeed = 10f;
+    const float maxSpeed = 10f;
 
     AnimatorOverrideController aoc;
     public AnimationClip[] defaultAtkClips;
@@ -26,7 +26,10 @@ public class PlayerAnimator : MonoBehaviour {
 
     public Transform mainH;
     public Transform offH;
-    public bool sheathed = true;
+    public Transform sheathL;
+    public Transform sheathR;
+    public Transform sheath2L;
+    public Transform sheath2R;
 
     protected virtual void Start () {
         //agent = GetComponent<NavMeshAgent>();
@@ -49,6 +52,7 @@ public class PlayerAnimator : MonoBehaviour {
 	}
     protected virtual void FixedUpdate()
     {
+        accel = input.normalized.magnitude;
         if (accel == 0 || Input.GetKey(KeyCode.LeftShift) || PlayerManager.instance.state == PlayerState.attacking)
         {
             speedPercent -= locomationAnimationSmoothTime;
@@ -59,27 +63,12 @@ public class PlayerAnimator : MonoBehaviour {
         }
         speedPercent = Mathf.Clamp(speedPercent, 0, maxSpeed);
         animator.SetFloat("speedPercent", speedPercent);
-        if (animator.GetBool("InCombat") && speedPercent <= 0.1f && sheathed)
-        {
-            UnSheathAll();
-        }
-        else if (speedPercent > 0.1f && !sheathed)
-        {
-            SheathAll();
-        }
         //animator.SetFloat("speedPercent", speedPercent, locomationAnimationSmoothTime, Time.deltaTime);
 
     }
     protected virtual void Update () {
         input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-        accel = input.normalized.magnitude;
-        /*
-        if (accel > 0)
-        {
-            //put away weapon if running
-            //animator.SetBool("Sheathed", true);
-            animator.SetTrigger("Sheath");
-        }*/
+        
     }
 
     void WeaponEquipped(Weapon newW, Weapon oldW)
@@ -102,10 +91,6 @@ public class PlayerAnimator : MonoBehaviour {
         if (currentAtkClips.Length > 0)
         {
             animator.SetTrigger("attack");
-            if (sheathed)
-            {
-                UnSheathAll();
-            }
             int i = Random.Range(0, currentAtkClips.Length);
             aoc[replaceableAttack.name] = currentAtkClips[i];
         }
@@ -114,66 +99,10 @@ public class PlayerAnimator : MonoBehaviour {
     void EnterCombat()
     {
         animator.SetBool("InCombat", true);
-        if (sheathed)
-            UnSheathAll();
     }
     void ExitCombat()
     {
         animator.SetBool("InCombat", false);
-        if (!sheathed)
-            SheathAll();
-    }
-    public void UnSheathAll()
-    {
-        if (PlayerStats.instance.mainHand != null)
-        {
-            UnSheath(true);
-        }
-        if (PlayerStats.instance.offHand != null)
-        {
-            UnSheath(false);
-        }
-        sheathed = false;
-    }
-    public void SheathAll()
-    {
-        if (PlayerStats.instance.mainHand != null)
-        {
-            Sheath(true);
-        }
-        if (PlayerStats.instance.offHand != null)
-        {
-            Sheath(false);
-        }
-        sheathed = true;
-    }
-    public void Sheath(bool mainhand)
-    {
-        if (mainhand && PlayerStats.instance.mainHand != null)
-        {
-            EquipmentManager.instance.RemoveFromBone(PlayerStats.instance.mainHand, mainH);
-            EquipmentManager.instance.AttachToBone(PlayerStats.instance.mainHand);
-        }
-        else if (!mainhand && PlayerStats.instance.offHand != null)
-        {
-            EquipmentManager.instance.RemoveFromBone(PlayerStats.instance.offHand, offH);
-            EquipmentManager.instance.AttachToBone(PlayerStats.instance.offHand);
-        }
-        animator.SetTrigger("sheath");
-    }
-    public void UnSheath(bool mainhand)
-    {
-        if (mainhand && PlayerStats.instance.mainHand != null)
-        {
-            EquipmentManager.instance.RemoveFromBone(PlayerStats.instance.mainHand);
-            EquipmentManager.instance.AttachToBone(PlayerStats.instance.mainHand, mainH);
-        }
-        else if (!mainhand && PlayerStats.instance.offHand != null)
-        {
-            EquipmentManager.instance.RemoveFromBone(PlayerStats.instance.offHand);
-            EquipmentManager.instance.AttachToBone(PlayerStats.instance.offHand, offH);
-        }
-        animator.SetTrigger("unsheath");
     }
 
     [System.Serializable]

@@ -15,8 +15,6 @@ public class CharacterStats : MonoBehaviour {
 	public int level { get; set; } = 1;
 	//public float[] baseAttackSpeed = new float[] { 1f, 1f };
 	public float baseAttackSpeed = 1f; //base 1 attack per second
-	public Weapon mainHand;
-	public Weapon offHand;
 	public int handsFull = 0;
 	//players have mana
 	public PlayerCombat combat;

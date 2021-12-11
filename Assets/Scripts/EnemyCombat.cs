@@ -30,23 +30,23 @@ public class EnemyCombat : Combat
 			inCombat = true;
 		}
 		target = (PlayerStats)target;
-		if (myStats.mainHand != null && attackCooldownMainH <= 0)
+		if (mainH != null && attackCooldownMainH <= 0)
 		{
 			Debug.Log("attacking with mh");
-			attackCooldownMainH = myStats.CalcAttackSpeed(myStats.mainHand);
+			attackCooldownMainH = myStats.CalcAttackSpeed(mainH);
 			//StartCoroutine(DoDamage(target, attackCooldownMainH, myStats.mainHand));
-			int damage = UnityEngine.Random.Range((int)myStats.mainHand.damage.min, (int)myStats.mainHand.damage.max + 1);
-			myStats.DealDamage(target, damage, myStats.mainHand.damage.type);
+			int damage = UnityEngine.Random.Range((int)mainH.damage.min, (int)mainH.damage.max + 1);
+			myStats.DealDamage(target, damage, mainH.damage.type);
 			lastHit = Time.time;
 			//inCombat = true;
 		}
-		if (myStats.offHand != null && attackCooldownOffH <= 0)
+		if (offH != null && attackCooldownOffH <= 0)
 		{
 			Debug.Log("attacking with oh");
-			attackCooldownOffH = myStats.CalcAttackSpeed(myStats.offHand);
+			attackCooldownOffH = myStats.CalcAttackSpeed(offH);
 			//StartCoroutine(DoDamage(target, attackCooldownOffH, myStats.offHand));
-			int damage = UnityEngine.Random.Range((int)myStats.offHand.damage.min, (int)myStats.offHand.damage.max + 1);
-			myStats.DealDamage(target, damage, myStats.offHand.damage.type);
+			int damage = UnityEngine.Random.Range((int)offH.damage.min, (int)offH.damage.max + 1);
+			myStats.DealDamage(target, damage, mainH.damage.type);
 			lastHit = Time.time;
 			//inCombat = true;
 		}

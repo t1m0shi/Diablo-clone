@@ -85,7 +85,7 @@ public class Item : ScriptableObject {
  
 
 	// Called when the item is pressed in the inventory
-	public virtual bool Use(int index)
+	public virtual bool Use(int index, int equipIndex=-1)
 	{
 		// Use the item
 		// Something might happen

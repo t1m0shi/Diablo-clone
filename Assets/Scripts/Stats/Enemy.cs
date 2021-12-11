@@ -7,7 +7,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(EnemyStats))]
 [RequireComponent(typeof(EnemyController))]
-[RequireComponent(typeof(PlayerCombat))]
+[RequireComponent(typeof(EnemyCombat))]
 public class Enemy : MonoBehaviour{//Interactable {
 
 	[SerializeField]

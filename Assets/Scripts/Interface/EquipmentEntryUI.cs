@@ -46,7 +46,7 @@ public class EquipmentEntryUI : MonoBehaviour, IPointerClickHandler, IPointerEnt
     public void OnEndDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
-        Owner.HandledDroppedEntry(eventData.position);//, prevDrag);
+        Owner.HandleDroppedEntry(eventData.position);//, prevDrag);
 
         RectTransform t = transform as RectTransform;
         float ogx = t.rect.width;

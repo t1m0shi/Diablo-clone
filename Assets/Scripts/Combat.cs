@@ -9,6 +9,10 @@ public class Combat : MonoBehaviour
     public float attackCooldownOffH = 0f;
     public bool inCombat = false;
     public float lastHit;
+	[SerializeField]
+	protected Weapon mainH;
+	[SerializeField]
+	protected Weapon offH;
 
 	protected virtual void Start()
 	{

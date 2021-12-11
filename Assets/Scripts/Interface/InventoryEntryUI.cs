@@ -73,18 +73,6 @@ public class InventoryEntryUI : MonoBehaviour, IPointerClickHandler, IPointerEnt
         }
     }
 
-
-    /*
-    public void SetupEquipment(EquipmentItem itm)
-    {
-        equipment = itm;
-
-        enabled = itm != null;
-        icon.enabled = enabled;
-        if (enabled)
-            icon.sprite = itm.ItemSprite;
-    }*/
-
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
@@ -120,7 +108,7 @@ public class InventoryEntryUI : MonoBehaviour, IPointerClickHandler, IPointerEnt
     public void OnEndDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
-        Owner.HandledDroppedEntry(eventData.position);//, prevDrag);
+        Owner.HandleDroppedEntry(eventData.position);//, prevDrag);
 
         RectTransform t = transform as RectTransform;
         float ogx = t.rect.width;

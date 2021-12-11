@@ -34,14 +34,10 @@ public class EquipmentManager : MonoBehaviour {
     private void Start()
     {
 		inventory = Inventory.instance;
-	}
-	void Update()
-	{
-		// Unequip all items if we press U
-		/*
-		if (Input.GetKeyDown(KeyCode.U))
-			UnequipAll();
-		*/
+		sheathL = pa.sheathL;
+		sheathR = pa.sheathR;
+		sheath2R = pa.sheath2R;
+		sheath2L = pa.sheath2L;
 	}
 
 	#endregion
@@ -51,10 +47,10 @@ public class EquipmentManager : MonoBehaviour {
 	public SkinnedMeshRenderer targetMesh; //should be player's mesh
 	public SkinnedMeshRenderer[] currentMeshes;
 
-	public Transform sheathL;
-	public Transform sheathR;
-	public Transform sheath2L;
-	public Transform sheath2R;
+	private Transform sheathL;
+	private Transform sheathR;
+	private Transform sheath2L;
+	private Transform sheath2R;
 
 	//[SerializeField]
 	public Equipment[] currentEquipment;   // Items we currently have equipped
@@ -64,7 +60,7 @@ public class EquipmentManager : MonoBehaviour {
 	// Callback for when an item is equipped/unequipped
 	public delegate void OnEquipmentChanged(Equipment newItem, Equipment oldItem);
 	public OnEquipmentChanged onEquipmentChanged;
-	public delegate void OnWeaponChanged(Weapon newItem, Weapon weapon);
+	public delegate void OnWeaponChanged(Weapon newItem, Weapon oldItem);
 	public OnWeaponChanged onWeaponChanged;
 
 	[SerializeField]
@@ -72,19 +68,22 @@ public class EquipmentManager : MonoBehaviour {
 
 	Inventory inventory;	// Reference to our inventory
 
-
 	// Equip a new item from inventory
-	public void Equip (Equipment newItem, int inventoryIndex)
+	public bool Equip (Equipment newItem, int inventoryIndex, int equipIndex)//, bool dragged = true)
 	{
+		if (newItem.GetType() == typeof(Weapon))
+        {
+			return Equip((Weapon)newItem, inventoryIndex, equipIndex);//, dragged);
+        }
 		// Find out what slot the item fits in
-		int equipIndex = (int)newItem.equipSlot;
+		//int equipIndex = (int)newItem.equipSlot;
 		//check what's currently equpped in that slot
 		Equipment oldItem = currentEquipment[equipIndex];
 
 		//there's already an item in the slot, so they swap
 		if (oldItem != null)
 		{
-			SwapEquipment(newItem, oldItem, inventoryIndex);
+			SwapEquipment(newItem, oldItem, inventoryIndex, equipIndex);
 		}
 		//if there's nothing in that slot, then we just equip and we're done (after cleanup)
 		else
@@ -101,251 +100,78 @@ public class EquipmentManager : MonoBehaviour {
 			onEquipmentChanged.Invoke(newItem, oldItem);
 		}
         AttachToMesh(newItem, equipIndex);
+		return true;
 	}
-
-	//remove an item from equipped items
-	public bool Unequip(Equipment toUnequip, int equipIndex)
-    {
-		//Equipment oldItem = null;
-		if (toUnequip != null)
-        {
-			if (toUnequip.GetType() == typeof(Weapon))
-			{
-				return Unequip((Weapon)toUnequip, equipIndex);
-			}
-			//int equipIndex = (int)toUnequip.equipSlot;
-			//if there's room to unequip
-			if (inventory.AddItem(toUnequip, 1))
-			{
-				SetBlendShapeWeight(toUnequip, 0);
-				//destroy the mesh
-				if (currentMeshes[equipIndex] != null)
-				{
-					Destroy(currentMeshes[equipIndex].gameObject);
-				}
-				currentEquipment[equipIndex] = null;
-				// Equipment has been removed so we trigger the callback
-				if (onEquipmentChanged != null)
-				{
-					onEquipmentChanged.Invoke(null, toUnequip);
-				}
-				//oldItem = toUnequip;
-				return true;
-			}
-		}
-		return false;
-		//return oldItem;
-    }
-	public bool Unequip(Equipment toUnequip, int equipIndex, int invIndex)
+	// Drag or click an item from inventory
+	public bool Equip(Weapon newItem, int inventoryIndex, int equipIndex)//, bool dragged=true)
 	{
-		//Equipment oldItem = null;
-		if (toUnequip != null)
-		{
-			if (toUnequip.GetType() == typeof(Weapon))
-			{
-				return Unequip((Weapon)toUnequip, equipIndex, invIndex);
-			}
-			//int equipIndex = (int)toUnequip.equipSlot;
-			//if there's room to unequip
-			if (inventory.items[invIndex].item == null)
-			{
-				inventory.items[invIndex].item = toUnequip;
-
-				SetBlendShapeWeight(toUnequip, 0);
-				//destroy the mesh
-				if (currentMeshes[equipIndex] != null)
-				{
-					Destroy(currentMeshes[equipIndex].gameObject);
-				}
-				currentEquipment[equipIndex] = null;
-				// Equipment has been removed so we trigger the callback
-				if (onEquipmentChanged != null)
-				{
-					onEquipmentChanged.Invoke(null, toUnequip);
-				}
-				//oldItem = toUnequip;
-				return true;
-			}
-		}
-		return false;
-		//return oldItem;
-	}
-
-	public void SwapEquipment(Equipment newItem, Equipment oldItem, int inventoryIndex)
-    {
-		//Debug.Log("swapping equipment");
-		SetBlendShapeWeight(oldItem, 0);
-		//destroy the mesh
-		
-		if (currentMeshes[(int)oldItem.equipSlot] != null)
-		{
-			Destroy(currentMeshes[(int)oldItem.equipSlot].gameObject);
-		}
-		currentEquipment[(int)newItem.equipSlot] = newItem;
-		inventory.items[inventoryIndex].item = oldItem;
-		AttachToMesh(newItem, (int)newItem.equipSlot);
-	}
-	public void SwapWeapon(Weapon newItem, Weapon oldItem, int inventoryIndex, int mainhand)
-    {
-		RemoveFromBone(oldItem);
-		int newSlot = (int)newItem.equipSlot + mainhand;
-		currentEquipment[newSlot] = newItem;
-		if (mainhand == 0)
-        {
-			PlayerStats.instance.mainHand = newItem;
-			if (newItem.handed == 2)
-			{
-				newItem.grip = sheath2R;
-			}
-			else
-				newItem.grip = sheathR;
-        }
-        else
-        {
-			PlayerStats.instance.offHand = newItem;
-			if (newItem.handed == 2)
-			{
-				newItem.grip = sheath2L;
-			}
-			else
-				newItem.grip = sheathL;
-		}
-		
-		inventory.items[inventoryIndex].item = oldItem;
-		//AttachToMesh(newItem, (int)newItem.equipSlot);
-		AttachToBone(newItem);
-	}
-	public void SwapWeapon(Weapon current, Weapon other)
-    {
-		RemoveFromBone(current);
-		RemoveFromBone(other);
-		if (current.grip == PlayerStats.instance.mainHand)
-		{
-			PlayerStats.instance.mainHand = other;
-			PlayerStats.instance.offHand = current;
-		}
-		else
-		{
-			PlayerStats.instance.mainHand = current;
-			PlayerStats.instance.offHand = other;
-		}
-		AttachToBone(current);
-		AttachToBone(other);
-	}
-
-	public void RemoveFromBone(Weapon oldItem, Transform bone=null)
-    {
-		if (oldItem != null)
-		{
-			if (bone == null)
-			{
-				if (!pa.sheathed)
-					pa.SheathAll();
-				Destroy(oldItem.grip.GetChild(0).gameObject);
-				
-				/*
-				if (oldItem.equipSlot == EquipmentSlot.MainHand)
-				{
-					if (oldItem.handed == 1)
-					{
-						Destroy(sheathL.GetChild(0).gameObject);
-					}
-					else
-					{
-						Destroy(sheath2R.GetChild(0).gameObject);
-					}
-				}
-				else
-				{
-					if (oldItem.handed == 1)
-					{
-						Destroy(sheathR.GetChild(0).gameObject);
-					}
-					else
-					{
-						Destroy(sheath2L.GetChild(0).gameObject);
-					}
-				}
-				*/
-
-			}
-			else
-			{
-				Destroy(bone.GetChild(0).gameObject);
-			}
-		}
-	}
-
-	public bool Equip(Weapon newItem, int inventoryIndex, int mainHand=0)
-    {
 		PlayerStats player = PlayerStats.instance;
 		if (player.WillHandsBeTooFull(newItem.handed))
 		{
 			return false;
 		}
-		// Find out what slot the item fits in
-		int equipIndex = (int)newItem.equipSlot;
-		Weapon oldItem = null;
-
+		Weapon oldItem = (Weapon)currentEquipment[equipIndex];
 		//hands are empty
-		if (player.handsFull == 0)
-        {
-			//put on new item in mainhand
+		if (player.handsFull <= 1)
+		{
+			//put on new item in that slot
 			currentEquipment[equipIndex] = newItem;
 			if (newItem.handed == 2)
-				newItem.grip = sheath2R;
+			{
+				if (equipIndex == (int)EquipmentSlot.Weapon)
+					newItem.sheath = sheath2R;
+				else
+					newItem.sheath = sheath2L;
+			}
 			else
-				newItem.grip = sheathL;
-			player.mainHand = newItem;
+			{
+				if (equipIndex == (int)EquipmentSlot.Weapon)
+					newItem.sheath = sheathL;
+				else
+					newItem.sheath = sheathR;
+			}
 			//take it out of inventory
 			inventory.RemoveItem(inventoryIndex);
+			
 		}
-        else
-        {
-			//currently have a weapon equipped
-			//only have 1 hander equipped, so we equip in offhand (should only allow 1h here)
-			if (player.handsFull == 1)
-            {
-				currentEquipment[equipIndex + 1] = newItem;
-				newItem.grip = sheathR;
-				player.offHand = newItem;
-				inventory.RemoveItem(inventoryIndex);
-            }
-			//currently have a 2 hander, or 2 1 handers
-			else if (player.handsFull == 2 && player.maxHands == 2)
-            {
-				oldItem = (Weapon)currentEquipment[equipIndex+mainHand]; //check what's in main hand or offhand
-				//replacing a 2h with another 2h or a 1h
-				if (newItem.handed <= oldItem.handed)
-				{ 
-					SwapWeapon(newItem, oldItem, inventoryIndex, 0);
-					if (newItem.handed == 2)
-                    {
-						newItem.grip = sheath2L;
-                    }
-                    else
-                    {
-						newItem.grip = sheathR;
-                    }
-                }
-				//replacing a 1h with a 2h, gotta unequip the offhand first
-				else
+		//currently have a 2 hander, or 2 1 handers
+		else if (player.handsFull == 2 && player.maxHands == 2)
+		{
+			 //check what's in main hand or offhand
+			//replacing a 2h with another 2h or a 1h
+			if (newItem.handed <= oldItem.handed)
+			{
+				//SwapWeapon(newItem, oldItem, inventoryIndex);
+				//Unequip(oldItem, equipIndex);
+				//Equip(newItem, inventoryIndex, equipIndex, dragged);
+				SwapEquipment(newItem, oldItem, inventoryIndex, equipIndex);
+			}
+			//replacing a 1h with a 2h, gotta unequip the other hand first
+			else
+			{
+				if (equipIndex == (int)EquipmentSlot.Weapon && Unequip((Weapon)currentEquipment[equipIndex + 1], equipIndex+1)) //mainhand
 				{
-					if (Unequip((Weapon)currentEquipment[equipIndex + 1], equipIndex +1))
-					{
-						SwapWeapon(newItem, oldItem, inventoryIndex, 0);
-					}
-					else
-						return false;
-                }
+					SwapEquipment(newItem, oldItem, inventoryIndex, equipIndex);
+				}
+				else if (equipIndex == (int)EquipmentSlot.Weapon+1 && Unequip((Weapon)currentEquipment[equipIndex - 1], equipIndex - 1)) //offhand
+				{
+					SwapEquipment(newItem, oldItem, inventoryIndex, equipIndex);
+				}
+				else
+					return false;
+			}
+		}
+		//currently have 2 2h's or a 2h and a shield?
+		else
+		{
+			//swap the offhand only
+			if (newItem.wtype == WeaponType.Shield)// && currentEquipment[(int)EquipmentSlot.Weapon + 1] == null)
+			{
+				SwapEquipment(newItem, currentEquipment[(int)EquipmentSlot.Weapon + 1], inventoryIndex, (int)EquipmentSlot.Weapon + 1);
             }
-			//currently have 2 2h's or a 2h and a shield?
-            else
-            {
-
-            }
-        }
-
+		}
+		
+		
 		/**
 		//there's already an item in the slot, so they swap if they're the same weight or switching in a 1h for a 2h
 		if (oldItem != null && (newItem.handed == oldItem.handed || newItem.handed < oldItem.handed))
@@ -399,104 +225,148 @@ public class EquipmentManager : MonoBehaviour {
 			onWeaponChanged.Invoke(newItem, oldItem);
 		}
 		//AttachToMesh(newItem, equipIndex);
-		AttachToBone(newItem);
+		AttachToBone(newItem, newItem.sheath);
 		return true;
+
 	}
 
-	public bool Unequip(Weapon toUnequip, int equipIndex)
+	//remove an item from equipped items, invIndex = -1 if just rightclicked
+	public bool Unequip(Equipment toUnequip, int equipIndex, int invIndex=-1)
     {
-		//Weapon oldItem = null;
 		if (toUnequip != null)
-		{
-			
-			//int equipIndex = (int)toUnequip.equipSlot+mainhand;
-			//if there's room to unequip
-			if (inventory.AddItem(toUnequip, 1))
+        {
+			//weapons have different ways of taking care of mesh
+			if (toUnequip.GetType() == typeof(Weapon))
 			{
-				/*
-				SetBlendShapeWeight(toUnequip, 0);
-				//destroy the mesh
-				if (currentMeshes[equipIndex] != null)
-				{
-					Destroy(currentMeshes[equipIndex].gameObject);
-				}
-				*/
-				RemoveFromBone(toUnequip);
-				if (equipIndex == (int)EquipmentSlot.Weapon)
-				{
-					PlayerStats.instance.mainHand = null;
-				}
-				else
-				{
-					PlayerStats.instance.offHand = null;
-				}
-				toUnequip.grip = null;
-				currentEquipment[equipIndex] = null;
-				// Equipment has been removed so we trigger the callback
-				if (onWeaponChanged != null)
-				{
-					onWeaponChanged.Invoke(null, toUnequip);
-				}
-				//oldItem = toUnequip;
-				return true;
+				return Unequip((Weapon)toUnequip, equipIndex, invIndex);
 			}
-		}
-		return false;
-		//return oldItem;
-	}
-	public bool Unequip(Weapon toUnequip, int equipIndex, int invIndex)
-	{
-		//Weapon oldItem = null;
-		if (toUnequip != null)
-		{
-
-			//int equipIndex = (int)toUnequip.equipSlot+mainhand;
-			//if there's room to unequip
-			if (inventory.items[invIndex].item == null)
+			if (invIndex != -1 && inventory.items[invIndex].item == null)
 			{
 				inventory.items[invIndex].item = toUnequip;
-				/*
+
 				SetBlendShapeWeight(toUnequip, 0);
 				//destroy the mesh
 				if (currentMeshes[equipIndex] != null)
 				{
 					Destroy(currentMeshes[equipIndex].gameObject);
 				}
-				*/
-				RemoveFromBone(toUnequip);
-				if (equipIndex == (int)EquipmentSlot.Weapon)
-                {
-					PlayerStats.instance.mainHand = null;
-                }
-                else
-                {
-					PlayerStats.instance.offHand = null;
-				}
-				toUnequip.grip = null;
 				currentEquipment[equipIndex] = null;
 				// Equipment has been removed so we trigger the callback
-				if (onWeaponChanged != null)
+				if (onEquipmentChanged != null)
 				{
-					onWeaponChanged.Invoke(null, toUnequip);
+					onEquipmentChanged.Invoke(null, toUnequip);
+				}
+				//oldItem = toUnequip;
+				return true;
+			}
+			//if there's room to unequip
+			else if (inventory.AddItem(toUnequip, 1))
+			{
+				SetBlendShapeWeight(toUnequip, 0);
+				//destroy the mesh
+				if (currentMeshes[equipIndex] != null)
+				{
+					Destroy(currentMeshes[equipIndex].gameObject);
+				}
+				currentEquipment[equipIndex] = null;
+				// Equipment has been removed so we trigger the callback
+				if (onEquipmentChanged != null)
+				{
+					onEquipmentChanged.Invoke(null, toUnequip);
 				}
 				//oldItem = toUnequip;
 				return true;
 			}
 		}
 		return false;
-		//return oldItem;
-	}
-	// Unequip all items
-	/*
-	public void UnequipAll ()
+    }
+	public bool Unequip(Weapon toUnequip, int equipIndex, int invIndex)
 	{
-		for (int i = 0; i < currentEquipment.Length; i++)
+		if (toUnequip != null)
 		{
-			Unequip(currentEquipment[i]);
+			//drag it into an open slot in inventory
+			if (invIndex != -1 && inventory.items[invIndex].item == null)
+			{
+				inventory.items[invIndex].item = toUnequip;
+				currentEquipment[equipIndex] = null;
+				RemoveFromBone(toUnequip.sheath);
+				// Equipment has been removed so we trigger the callback
+				if (onWeaponChanged != null)
+				{
+					onWeaponChanged.Invoke(null, toUnequip);
+				}
+				return true;
+			}
+			//if there's room to unequip (right clicked)
+			else if (invIndex == -1 && inventory.AddItem(toUnequip, 1))
+			{
+				currentEquipment[equipIndex] = null;
+				RemoveFromBone(toUnequip.sheath);
+				// Equipment has been removed so we trigger the callback
+				if (onWeaponChanged != null)
+				{
+					onWeaponChanged.Invoke(null, toUnequip);
+				}
+				return true;
+			}
 		}
+		return false;
+	}
+	//moving from equipment to inventory
+	public void SwapEquipment(Equipment newItem, Equipment oldItem, int inventoryIndex, int equipIndex)
+    {
+		if (newItem.GetType() == typeof(Weapon))
+        {
+			SwapWeapon((Weapon)newItem, (Weapon)oldItem, inventoryIndex, equipIndex);
+			return;
+        }
+		//Debug.Log("swapping equipment");
+		SetBlendShapeWeight(oldItem, 0);
+		//destroy the mesh
+		
+		if (currentMeshes[(int)oldItem.equipSlot] != null)
+		{
+			Destroy(currentMeshes[(int)oldItem.equipSlot].gameObject);
+		}
+		currentEquipment[(int)newItem.equipSlot] = newItem;
+		inventory.items[inventoryIndex].item = oldItem;
+		AttachToMesh(newItem, (int)newItem.equipSlot);
+		if (onEquipmentChanged != null)
+		{
+			onEquipmentChanged.Invoke(newItem, oldItem);
+		}
+	}
+	//moving from equipment to inventory
+	public void SwapWeapon(Weapon newItem, Weapon oldItem, int inventoryIndex, int equipIndex)
+    {
+		RemoveFromBone(oldItem.sheath);
+		currentEquipment[equipIndex] = newItem;
+		inventory.items[inventoryIndex].item = oldItem;
+		newItem.sheath = oldItem.sheath;
+		AttachToBone(newItem, newItem.sheath);
+		if (onWeaponChanged != null)
+		{
+			onWeaponChanged.Invoke(newItem, oldItem);
+		}
+	}
+	//swapping while in equipment
+	public void SwapWeapons(Weapon current, Weapon other, int curIndex, int oIndex)
+    {
+		currentEquipment[curIndex] = other;
+		currentEquipment[oIndex] = current;
+		RemoveFromBone(current.sheath);
+		RemoveFromBone(other.sheath);
+		Transform temp = current.sheath;
+		current.sheath = other.sheath;
+		other.sheath = temp;
+		AttachToBone(current, current.sheath);
+		AttachToBone(current, other.sheath);
+	}
 
-        //EquipDefaults();
-	}*/
+	public void RemoveFromBone(Transform bone)
+    {
+		Destroy(bone.GetChild(0).gameObject);
+	}
 
 	void AttachToMesh(Equipment item, int slotIndex)
 	{
@@ -512,76 +382,34 @@ public class EquipmentManager : MonoBehaviour {
 		SetBlendShapeWeight(item, 100);
 		
 	}
-	public void AttachToBone(Weapon item, Transform bone=null)
+	public void AttachToBone(Weapon item, Transform bone)
     {
-		GameObject g;// = Instantiate(item.representation, mainH.position, Quaternion.identity);
-		Quaternion q = Quaternion.identity;//Quaternion.Euler(0, 0, 0);
+		Quaternion q = Quaternion.identity;
+		GameObject g = Instantiate(item.representation, bone.position, q);
+		g.transform.SetParent(bone);
 
-		if (bone == null)
+		if (bone == sheath2R)
 		{
-			bone = item.grip;
-			g = Instantiate(item.representation, bone.position, q);//Quaternion.identity);
-			g.transform.SetParent(bone);
-			/*
-			if (item.equipSlot == EquipmentSlot.MainHand)
-			{
-				if (item.handed == 1)
-				{
-					g = Instantiate(item.representation, sheathL.position, q);//Quaternion.identity);
-					g.transform.SetParent(sheathL);
-				}
-                else
-                {
-					g = Instantiate(item.representation, sheath2R.position, q);//Quaternion.identity);
-                    g.transform.SetParent(sheath2R);
-					var v = new Vector3(10, 145, 110);
-					g.transform.localRotation = Quaternion.Euler(v);
-				}
-			}
-			else
-			{
-				if (item.handed == 1)
-				{
-					g = Instantiate(item.representation, sheathR.position, q);
-					g.transform.SetParent(sheathR);
-				}
-                else
-                {
-					g = Instantiate(item.representation, sheath2L.position, q);//Quaternion.identity);
-					g.transform.SetParent(sheath2L);
-					var v = new Vector3(10, 145, 110);
-					g.transform.localRotation = Quaternion.Euler(v);
-				}
-			}
-			*/
-			if (bone == sheath2R)
-			{
-				//g.transform.SetParent(sheath2R);
-				var v = new Vector3(10, 145, 110);
-				g.transform.localRotation = Quaternion.Euler(v);
-			}
-			else if (bone == sheath2L)
-            {
-				var v = new Vector3(10, -145, 110);
-				g.transform.localRotation = Quaternion.Euler(v);
-			}
-			else if (bone == sheathL)
-            {
-
-            }
-			else if (bone == sheathR)
-            {
-
-            }
+			var v = new Vector3(10, 145, 110);
+			g.transform.localRotation = Quaternion.Euler(v);
 		}
+		else if (bone == sheath2L)
+        {
+			var v = new Vector3(10, -145, 110);
+			g.transform.localRotation = Quaternion.Euler(v);
+		}
+		else if (bone == sheathL)
+        {
+
+        }
+		else if (bone == sheathR)
+        {
+
+        }
+		
 		else
 		{
-			//q = Quaternion.Euler(90, 0, 0);
-
-
-			g = Instantiate(item.representation, bone.position, q);//Quaternion.identity);
-			g.transform.SetParent(bone);
-			var v = new Vector3(0, 0, 180);
+			var v = new Vector3(90, 0, 0);
 			g.transform.localRotation = Quaternion.Euler(v);
 		}
 	}
@@ -607,7 +435,6 @@ public class EquipmentManager : MonoBehaviour {
 		}
     }
 	*/
-
 
 
 
