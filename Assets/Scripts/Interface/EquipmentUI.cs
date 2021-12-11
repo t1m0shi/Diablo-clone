@@ -138,24 +138,22 @@ public class EquipmentUI : MonoBehaviour
                             Equipment prevItem = equipped.currentEquipment[CurrentlyDragged.DraggedEntry.slot];
                             Equipment nextItem = equipped.currentEquipment[equipEntries[i].slot];
                             //swap the item if they're the same type (should only happen with weapons)
-                            if (nextItem != null && nextItem.equipSlot == prevItem.equipSlot)
+                            if (prevItem.equipSlot == (EquipmentSlot)equipEntries[i].slot || prevItem.equipSlot  == EquipmentSlot.Weapon)
                             {
-                                //inventory.items[CurrentlyDragged.DraggedEntry.InventoryEntry].item = inventory.items[i].item;
-                                //inventory.items[CurrentlyDragged.DraggedEntry.InventoryEntry].count = inventory.items[i].count;
-                                // inventory.items[i].item = prevItem;
-                                //inventory.items[i].count = prevCount;
+                                //if (nextItem != null)
                                 Weapon p = (Weapon)prevItem;
                                 Weapon n = (Weapon)nextItem;
+                                if (n == null || n.wtype != WeaponType.Shield)
+                                {
+                                    equipped.SwapWeapons(p, n, CurrentlyDragged.DraggedEntry.slot, equipEntries[i].slot);
 
-                                equipped.SwapWeapons(p, n, CurrentlyDragged.DraggedEntry.slot, equipEntries[i].slot);
-
-                                //equipped.currentEquipment[CurrentlyDragged.DraggedEntry.slot] = n;
-                                //equipped.currentEquipment[equipEntries[i].slot] = p;
-                                CurrentlyDragged.DraggedEntry.UpdateEntry();
-                                equipEntries[i].UpdateEntry();
-                                break;
+                                    //equipped.currentEquipment[CurrentlyDragged.DraggedEntry.slot] = n;
+                                    //equipped.currentEquipment[equipEntries[i].slot] = p;
+                                    //CurrentlyDragged.DraggedEntry.UpdateEntry();
+                                    equipEntries[i].UpdateEntry();
+                                    break;
+                                }
                             }
-
                         }
 
                     }
@@ -178,17 +176,17 @@ public class EquipmentUI : MonoBehaviour
                     bool matches = false;
                     //try
                     //{
-                        if (prevItem.equipSlot == (EquipmentSlot)equipEntries[i].slot)
-                        {
-                            matches = true;
-                        }
-                    //}
-                    //catch
+                    if (prevItem.equipSlot == (EquipmentSlot)equipEntries[i].slot || prevItem.equipSlot == EquipmentSlot.Weapon)
+                    {
+                        matches = true;
+                    }
+                //}
+                //catch
+                //{
+                    //else if (prevItem.equipSlot == EquipmentSlot.Weapon && (int) == equipEntries[i].slot)
                     //{
-                        if ((int)prevItem.equipSlot + 1 == equipEntries[i].slot)
-                        {
-                            matches = true;
-                        }
+                    //    matches = true;
+                    //}
                     //}
                     if (matches)
                     {
@@ -201,7 +199,7 @@ public class EquipmentUI : MonoBehaviour
                             EquipmentManager.instance.Equip(prevItem, inv.InventoryEntry, equipEntries[i].slot);
                         }
                         inv.UpdateEntry();
-                        equipEntries[i].UpdateEntry();
+                        //equipEntries[i].UpdateEntry();
                         break;
                     }
                     

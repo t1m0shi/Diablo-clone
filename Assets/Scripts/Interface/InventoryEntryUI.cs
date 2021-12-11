@@ -119,5 +119,7 @@ public class InventoryEntryUI : MonoBehaviour, IPointerClickHandler, IPointerEnt
         t.offsetMax = -Vector2.one * 4;
         t.offsetMin = Vector2.one * 4;
         t.sizeDelta = new Vector2(ogx, ogy);
+
+        UpdateEntry();
     }
 }

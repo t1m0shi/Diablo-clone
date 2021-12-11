@@ -354,13 +354,43 @@ public class EquipmentManager : MonoBehaviour {
     {
 		currentEquipment[curIndex] = other;
 		currentEquipment[oIndex] = current;
-		RemoveFromBone(current.sheath);
-		RemoveFromBone(other.sheath);
-		Transform temp = current.sheath;
-		current.sheath = other.sheath;
-		other.sheath = temp;
-		AttachToBone(current, current.sheath);
-		AttachToBone(current, other.sheath);
+		if (other != null)
+        {
+			RemoveFromBone(current.sheath);
+			RemoveFromBone(other.sheath);
+			Transform temp = current.sheath;
+			current.sheath = other.sheath;
+			other.sheath = temp;
+			AttachToBone(current, current.sheath);
+			AttachToBone(other, other.sheath);
+		}
+        else
+        {
+			RemoveFromBone(current.sheath);
+			if (current.handed == 2)
+            {
+				if (curIndex == (int)EquipmentSlot.Weapon) // if in mainhand already
+                {
+					current.sheath = sheath2L;
+                }
+                else
+                {
+					current.sheath = sheath2R;
+                }
+            }
+            else
+            {
+				if (curIndex == (int)EquipmentSlot.Weapon) // if in mainhand already
+				{
+					current.sheath = sheathL;
+				}
+				else
+				{
+					current.sheath = sheathR;
+				}
+			}
+			AttachToBone(current, current.sheath);
+		}
 	}
 
 	public void RemoveFromBone(Transform bone)

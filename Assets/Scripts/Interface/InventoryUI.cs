@@ -260,7 +260,7 @@ public class InventoryUI : MonoBehaviour
                     {
                         equ.transform.SetParent(equipmentParent.CurrentlyDragged.OriginalParent);
                         EquipmentManager.instance.Unequip((Equipment)prevItem, equ.slot, m_ItemEntries[i].InventoryEntry);
-                        equ.UpdateEntry();
+                        //equ.UpdateEntry();
                         m_ItemEntries[i].UpdateEntry();
                     }
                     break;
