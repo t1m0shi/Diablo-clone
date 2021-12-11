@@ -18,47 +18,11 @@ public class Weapon : Equipment
 	public WeaponMode wmode;
 	//public Mesh mesh; //replaces the actual mesh with gameobject so I can have lights on it and stuff easily
 	public GameObject representation;
-	[HideInInspector]
-	public Transform grip;
+	public Transform grip; //when it's in use, this will change between grip and sheath
+	public Transform sheath; //this depends on which slot it's in in the inventory
 
 
     #region Random Generation
-    /*
-    public override void InitWeapon(DmgType dtype, int min, int max, Rarity rarity=Rarity.Common)
-    {
-		Debug.Log("Creating a weapon");
-        base.Init(rarity);
-        this.damage = new WeaponDamage(dtype, min, max);
-		//this.wtype = wtype;
-		/**
-		switch (wtype)
-        {
-			case WeaponType.Sword1h:
-				this.hands = 1;
-				break;
-			case WeaponType.Sword2h:
-				this.hands = 2;
-				break;
-			case WeaponType.Gun1h:
-				this.hands = 1;
-				break;
-			case WeaponType.Gun2h:
-				this.hands = 2;
-				break;
-			case WeaponType.Dagger:
-				this.hands = 1;
-				break;
-			case WeaponType.Chainsaw:
-				this.hands = 2;
-				break;
-			case WeaponType.Shield:
-				this.hands = 1;
-				break;
-					
-        }
-	}
-		*/
-
 
     public override void InitWeapon(Rarity rarity = Rarity.Epic)//, WeaponType wtyp = WeaponType.Sword2h)
     {
@@ -421,11 +385,12 @@ public class Weapon : Equipment
 	}
     #endregion
 
+	/*
     public override bool Use(int index)
     {
 		return EquipmentManager.instance.Equip(this, index);
 		//return true;
-    }
+    }*/
 }
 
 public enum WeaponMode { Ranged, Melee, Blocking }

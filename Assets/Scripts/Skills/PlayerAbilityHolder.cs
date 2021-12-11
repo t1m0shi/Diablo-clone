@@ -23,6 +23,8 @@ public class PlayerAbilityHolder : MonoBehaviour, IPointerClickHandler, IPointer
     public AbilitySelector selector;
     public AbilityState currentState = AbilityState.ready;
 
+    bool mouseOverUI = false;
+
     private float recentlyPickedUp = 0.1f;//can't cast for this
 
     public enum AbilityState
@@ -57,7 +59,11 @@ public class PlayerAbilityHolder : MonoBehaviour, IPointerClickHandler, IPointer
     // Update is called once per frame
     void Update()
     {
-        if (ability != null && currentState == AbilityState.ready && Input.GetKey(key) && !EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetKeyDown(KeyCode.Mouse0) && EventSystem.current.IsPointerOverGameObject() || EventSystem.current.IsPointerOverGameObject())
+            mouseOverUI = true;
+        else if (Input.GetKeyUp(KeyCode.Mouse0) && !EventSystem.current.IsPointerOverGameObject())
+            mouseOverUI = false;
+        if (ability != null && currentState == AbilityState.ready && Input.GetKey(key) && !mouseOverUI)
         {
             /**
             //it will cast if you're holding shift or you're moused over an enemy

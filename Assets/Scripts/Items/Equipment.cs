@@ -711,11 +711,11 @@ public class Equipment : Item
     }
 
     // When pressed in inventory
-    public override bool Use(int index)
+    public override bool Use(int index, int equipIndex)
 	{
 		base.Use(index);
 		//Debug.Log("used an equipment");
-		EquipmentManager.instance.Equip(this, index);
+		EquipmentManager.instance.Equip(this, index, equipIndex);
 		return true;
 	}
 

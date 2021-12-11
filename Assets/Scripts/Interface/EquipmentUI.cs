@@ -102,7 +102,7 @@ public class EquipmentUI : MonoBehaviour
         ObjectHoverExited(m_HoveredItem);
     }
     
-    public void HandledDroppedEntry(Vector3 position, InventoryEntryUI inv=null)
+    public void HandleDroppedEntry(Vector3 position, InventoryEntryUI inv=null)
     {
         //dragging from equipment to somewhere
         if (inv == null)
@@ -119,20 +119,21 @@ public class EquipmentUI : MonoBehaviour
                         DraggedEntry = itemEntries[j],
                         OriginalParent = t
                     };
-                    inventoryParent.HandledDroppedEntry(position, CurrentlyDragged.DraggedEntry);
+                    inventoryParent.HandleDroppedEntry(position, CurrentlyDragged.DraggedEntry);
                     //this.CurrentlyDragged = null;
                     inInventory = true;
                     break;
                 }
             }
+            //dragging inside equipment
             if (!inInventory)
             {
                 for (int i = 0; i < equipEntries.Length; ++i)
                 {
                     RectTransform t = (RectTransform)equipEntries[i].transform;
-                    if (RectTransformUtility.RectangleContainsScreenPoint(t, position)) //only care once it gets to the next position of i
+                    if (RectTransformUtility.RectangleContainsScreenPoint(t, position))
                     {
-                        if (CurrentlyDragged.DraggedEntry.slot != i)
+                        if (CurrentlyDragged.DraggedEntry.slot != i) //exclude itself
                         {
                             Equipment prevItem = equipped.currentEquipment[CurrentlyDragged.DraggedEntry.slot];
                             Equipment nextItem = equipped.currentEquipment[equipEntries[i].slot];
@@ -146,12 +147,10 @@ public class EquipmentUI : MonoBehaviour
                                 Weapon p = (Weapon)prevItem;
                                 Weapon n = (Weapon)nextItem;
 
-                                equipped.SwapWeapon(p, n);
+                                equipped.SwapWeapons(p, n, CurrentlyDragged.DraggedEntry.slot, equipEntries[i].slot);
 
-                                equipped.currentEquipment[CurrentlyDragged.DraggedEntry.slot] = n;
-                                equipped.currentEquipment[equipEntries[i].slot] = p;
-                                
-
+                                //equipped.currentEquipment[CurrentlyDragged.DraggedEntry.slot] = n;
+                                //equipped.currentEquipment[equipEntries[i].slot] = p;
                                 CurrentlyDragged.DraggedEntry.UpdateEntry();
                                 equipEntries[i].UpdateEntry();
                                 break;
@@ -170,81 +169,44 @@ public class EquipmentUI : MonoBehaviour
             for (int i = 0; i < equipEntries.Length; ++i)
             {
                 RectTransform t = (RectTransform)equipEntries[i].transform;
-                if (RectTransformUtility.RectangleContainsScreenPoint(t, position)) //only care once it gets to the next position of i
+                if (RectTransformUtility.RectangleContainsScreenPoint(t, position))
                 {
-                    //if (CurrentlyDragged.DraggedEntry.slot != i)
-                    //{
-
-                    Equipment prevItem = (Equipment)inventoryParent.inventory.items[inv.InventoryEntry].item;//inventoryParent.equipped.currentEquipment[equ.slot];
+                    Equipment prevItem = (Equipment)inventoryParent.inventory.items[inv.InventoryEntry].item;
                     Equipment nextItem = equipped.currentEquipment[equipEntries[i].slot];
 
+                    
                     bool matches = false;
-                    int offset = 0;
-                    try
-                    {
+                    //try
+                    //{
                         if (prevItem.equipSlot == (EquipmentSlot)equipEntries[i].slot)
                         {
                             matches = true;
                         }
-                    }
-                    catch
-                    {
+                    //}
+                    //catch
+                    //{
                         if ((int)prevItem.equipSlot + 1 == equipEntries[i].slot)
                         {
                             matches = true;
-                            offset = 1;
                         }
-                    }
+                    //}
                     if (matches)
                     {
-                        if (prevItem.GetType() == typeof(Weapon))
+                        if (nextItem != null)
                         {
-                            Weapon p = (Weapon)prevItem;
-                            Weapon n = (Weapon)nextItem;
-                            EquipmentManager.instance.SwapWeapon(p, n, inv.InventoryEntry, offset);
+                            EquipmentManager.instance.SwapEquipment(prevItem, nextItem, inv.InventoryEntry, equipEntries[i].slot);
                         }
                         else
-                            EquipmentManager.instance.SwapEquipment(prevItem, nextItem, inv.InventoryEntry);
-
+                        {
+                            EquipmentManager.instance.Equip(prevItem, inv.InventoryEntry, equipEntries[i].slot);
+                        }
                         inv.UpdateEntry();
                         equipEntries[i].UpdateEntry();
-                        //prevItem.Use(inv.InventoryEntry);
-
-                        /*
-                        //if there's nothing in that slot, then just put the equipment in the slot
-                        if (nextItem == null)
-                        {
-                            equipped.currentEquipment[equipEntries[i].slot] = prevItem;
-                            inv.UpdateEntry();
-                            equipEntries[i].UpdateEntry();
-
-                        }
-                        //swap the item if they're the same
-                        else if (nextItem.GetType() == prevItem.GetType())
-                        {
-                            equipmentParent.equipped.currentEquipment[equ.slot] = (Equipment)nextItem;
-                            inventory.items[m_ItemEntries[i].InventoryEntry].item = prevItem;
-
-                            equ.UpdateEntry();
-                            m_ItemEntries[i].UpdateEntry();
-                            break;
-                        }
-                        //otherwise if they're not the same, put it in the next available slot
-                        else// if (nextItem.GetType() != prevItem.GetType())
-                        {
-                            if (inventory.AddItem(prevItem, 1))
-                            {
-                                equ.UpdateEntry();
-                                break;
-                            }
-                        }
-                        */
                         break;
                     }
-                    //}
+                    
+                   
                 }
-
-                // }
             }
             return;
         }

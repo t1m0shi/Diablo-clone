@@ -106,8 +106,20 @@ public class InventoryUI : MonoBehaviour
     {
         //if (inventory.UseItem(usedItem))
         //SFXManager.PlaySound(SFXManager.Use.Sound2D, new SFXManager.PlayData() { Clip = usedItem.Item is EquipmentItem ? SFXManager.ItemEquippedSound : SFXManager.ItemUsedSound });
-
-        inventory.UseItem(usedItem);
+        if (Input.GetKey(KeyCode.LeftShift) && usedItem.item.GetType() == typeof(Weapon))
+        {
+            Weapon w = (Weapon)usedItem.item;
+            inventory.UseItem(usedItem, (int)w.equipSlot + 1);
+        }
+        else if (usedItem.item.GetType() == typeof(Equipment) || usedItem.item.GetType().IsSubclassOf(typeof(Equipment)))
+        {
+            Equipment e = (Equipment)usedItem.item;
+            inventory.UseItem(usedItem, (int)e.equipSlot);
+        }
+        else
+        {
+            inventory.UseItem(usedItem);
+        }
         //ObjectHoverExited(m_HoveredItem);
         ObjectHoveredEnter(m_HoveredItem);
         UpdateUI();
@@ -135,7 +147,7 @@ public class InventoryUI : MonoBehaviour
     }
 
     
-    public void HandledDroppedEntry(Vector3 position, EquipmentEntryUI equ=null)//, InventoryEntryUI prevEntry)
+    public void HandleDroppedEntry(Vector3 position, EquipmentEntryUI equ=null)//, InventoryEntryUI prevEntry)
     {
         //dragging from inventory to somewhere
         if (equ == null)
@@ -153,28 +165,28 @@ public class InventoryUI : MonoBehaviour
                         DraggedEntry = equipEntries[j],
                         OriginalParent = t
                     };
-                    equipmentParent.HandledDroppedEntry(position, this.CurrentlyDragged.DraggedEntry);
+                    equipmentParent.HandleDroppedEntry(position, this.CurrentlyDragged.DraggedEntry);
                     //this.CurrentlyDragged = null;
                     inEquipment = true;
                     break;
                 }
             }
+            //dragging inside the inventory
             if (!inEquipment)
             {
                 bool inBox = false;
                 for (int i = 0; i < m_ItemEntries.Length; ++i)
                 {
                     RectTransform t = (RectTransform)m_ItemEntries[i].transform;
-                    if (RectTransformUtility.RectangleContainsScreenPoint(t, position)) //only care once it gets to the next position of i
+                    if (RectTransformUtility.RectangleContainsScreenPoint(t, position))
                     {
-                        if (CurrentlyDragged.DraggedEntry.InventoryEntry != i)
+                        if (CurrentlyDragged.DraggedEntry.InventoryEntry != i) //to not include itself
                         {
                             Item prevItem = inventory.items[CurrentlyDragged.DraggedEntry.InventoryEntry].item;
                             Item nextItem = inventory.items[m_ItemEntries[i].InventoryEntry].item;
                             //swap the item (if they're different)and how many
                             if (nextItem != prevItem)
                             {
-
                                 int prevCount = inventory.items[CurrentlyDragged.DraggedEntry.InventoryEntry].count;
 
                                 inventory.items[CurrentlyDragged.DraggedEntry.InventoryEntry].item = inventory.items[i].item;
@@ -219,15 +231,15 @@ public class InventoryUI : MonoBehaviour
             for (int i = 0; i < m_ItemEntries.Length; ++i)
             {
                 RectTransform t = (RectTransform)m_ItemEntries[i].transform;
-                if (RectTransformUtility.RectangleContainsScreenPoint(t, position)) //only care once it gets to the next position of i
+                if (RectTransformUtility.RectangleContainsScreenPoint(t, position))
                 {
-                    //if (CurrentlyDragged.DraggedEntry.InventoryEntry != i)
-                    //{
                     Item prevItem = equipmentParent.equipped.currentEquipment[equ.slot];
                     Item nextItem = inventory.items[m_ItemEntries[i].InventoryEntry].item;
                     //if it's the same equipment type, then swap from inventory into the equipment
                     if (nextItem != null && nextItem.GetType() == prevItem.GetType())
                     {
+                        EquipmentManager.instance.SwapEquipment((Equipment)nextItem, (Equipment)prevItem, m_ItemEntries[i].InventoryEntry, equ.slot);
+                        /*
                         if (prevItem.GetType() == typeof(Weapon))
                         {
                             Weapon p = (Weapon)prevItem;
@@ -241,7 +253,9 @@ public class InventoryUI : MonoBehaviour
                         }
                         else
                             EquipmentManager.instance.SwapEquipment((Equipment)nextItem, (Equipment)prevItem, m_ItemEntries[i].InventoryEntry);
+                        */
                     }
+                    //nothing in that slot
                     else
                     {
                         equ.transform.SetParent(equipmentParent.CurrentlyDragged.OriginalParent);
@@ -250,40 +264,7 @@ public class InventoryUI : MonoBehaviour
                         m_ItemEntries[i].UpdateEntry();
                     }
                     break;
-                    //}
                 }
-                /*
-                //if there's nothing in that slot, then just put the equipment in the slot
-                if (nextItem == null)
-                {
-                    inventory.items[m_ItemEntries[i].InventoryEntry].item = prevItem;
-                    equ.UpdateEntry();
-                    m_ItemEntries[i].UpdateEntry();
-                    break;
-                }
-                //swap the item if they're the same
-                else if (nextItem.GetType() == prevItem.GetType())
-                {
-                    equipmentParent.equipped.currentEquipment[equ.slot] = (Equipment)nextItem;
-                    inventory.items[m_ItemEntries[i].InventoryEntry].item = prevItem;
-
-                    equ.UpdateEntry();
-                    m_ItemEntries[i].UpdateEntry();
-                    break;
-                }
-                //otherwise if they're not the same, put it in the next available slot
-                else// if (nextItem.GetType() != prevItem.GetType())
-                {
-                    if(inventory.AddItem(prevItem, 1))
-                    {
-                        equ.UpdateEntry();
-                        break;
-                    }
-                }
-                */
-                
-
-               // }
             }
             return;
         }

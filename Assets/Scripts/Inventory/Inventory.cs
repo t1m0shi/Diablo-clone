@@ -42,8 +42,6 @@ public class Inventory : MonoBehaviour {
 		public int inventory_index;
     }
 
-	
-
 	/// <summary>
 	/// Add an item to the inventory. This will look if this item already exist in one of the slot and increment the
 	/// stack counter there instead of using another slot.
@@ -109,11 +107,10 @@ public class Inventory : MonoBehaviour {
 	/// </summary>
 	/// <param name="item"></param>
 	/// <returns></returns>
-	public bool UseItem(InventoryEntry item)
+	public bool UseItem(InventoryEntry item, int equipIndex=-1)
 	{
-		bool wasUsed = false;
-		wasUsed = item.item.Use(item.inventory_index);
-		if (wasUsed) 
+        bool wasUsed = item.item.Use(item.inventory_index, equipIndex);
+        if (wasUsed) 
 		{
 			if (onItemChangedCallback != null) onItemChangedCallback.Invoke();
 		}
